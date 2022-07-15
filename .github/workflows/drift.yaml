@@ -7,46 +7,65 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate_matrix:
+  list-manifests:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.generate_matrix.outputs.matrix }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: list_files
-        run: echo "$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' | jq -R -s -c 'split("\n")[:-1]')"
-
-      - name: Generate matrix
-        id: generate_matrix
-        run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | jq -R -s -c 'split("\n")[:-1]')"
-
-  check_drift:
+      - uses: actions/checkout@v2
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(ls env_vars/*.tfenv | jq -R -s -c 'split("\n")[:-1]')"
+  check:
+    needs: list-manifests
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        manifest: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
-
-    name: Check for drift of terraform configuration
+        matrix:
+            manifest: ${{ fromJson(needs.list-manifests.outputs.matrix) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: test
-        run: echo "${{ matrix.env_vars }}"
-      - name: Check
-        uses: dflook/terraform-check@v1
-        id: check
-        env:
-          TERRAFORM_PRE_RUN: |
-            # Setup TFENV
-            git clone --depth=1 https://github.com/tfutils/tfenv.git ~/.tfenv
-            PATH="$HOME/.tfenv/bin:$PATH"
-            tfenv install
-        with:
-          backend_config_file: backend_config/env
-          var_file: env_vars/env
+      - uses: actions/checkout@v2   
+      - run: |
+        echo ${{ martix.env_vars }}
 
-      - name: Changes detected
-        if: ${{ failure() && steps.check.outputs.failure-reason == 'changes-to-apply' }}
-        run: echo "There are outstanding terraform changes to apply"
+  # generate_matrix:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.generate_matrix.outputs.matrix }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  #     - name: list_files
+  #       run: echo "$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' | jq -R -s -c 'split("\n")[:-1]')"
+
+  #     - name: Generate matrix
+  #       id: generate_matrix
+  #       run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | jq -R -s -c 'split("\n")[:-1]')"
+
+  # check_drift:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       manifest: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
+
+  #   name: Check for drift of terraform configuration
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #     - name: test
+  #       run: echo "${{ matrix.env_vars }}"
+  #     - name: Check
+  #       uses: dflook/terraform-check@v1
+  #       id: check
+  #       env:
+  #         TERRAFORM_PRE_RUN: |
+  #           # Setup TFENV
+  #           git clone --depth=1 https://github.com/tfutils/tfenv.git ~/.tfenv
+  #           PATH="$HOME/.tfenv/bin:$PATH"
+  #           tfenv install
+  #       with:
+  #         backend_config_file: backend_config/env
+  #         var_file: env_vars/env
+
+  #     - name: Changes detected
+  #       if: ${{ failure() && steps.check.outputs.failure-reason == 'changes-to-apply' }}
+  #       run: echo "There are outstanding terraform changes to apply"
