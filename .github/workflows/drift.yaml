@@ -17,28 +17,28 @@ jobs:
         uses: actions/checkout@v2
 
       - name: list_files
-        run: echo "$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' -e 's/env_vars\///g' | jq -R -s -c 'split("\n")[:-1]')"
+        run: echo "$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' | jq -R -s -c 'split("\n")[:-1]')"
 
       - name: Generate matrix
         id: generate_matrix
-        run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' -e 's/env_vars\///g' | jq -R -s -c 'split("\n")[:-1]')"
+        run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' | jq -R -s -c 'split("\n")[:-1]')"
 
   check_drift:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         manifest: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
-      fail-fast: true 
+
     name: Check for drift of terraform configuration
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      - name: test
+        run: echo "${{ matrix.env_vars }}"
       - name: Check
         uses: dflook/terraform-check@v1
         id: check
         env:
-          TERRAFORM_SSH_KEY: ${{ secrets.TERRAFORM_SSH_KEY }}
           TERRAFORM_PRE_RUN: |
             # Setup TFENV
             git clone --depth=1 https://github.com/tfutils/tfenv.git ~/.tfenv
