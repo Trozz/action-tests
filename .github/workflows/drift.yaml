@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        manifest: ${{ fromJson(needs.list-manifests.outputs.matrix) }}
+        manifest: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
       fail-fast: true 
     name: Check for drift of terraform configuration
     steps:
