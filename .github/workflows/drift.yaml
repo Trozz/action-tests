@@ -23,7 +23,7 @@ jobs:
             manifest: ${{ fromJson(needs.list-manifests.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v2   
-      - run: echo ${{ matrix.env_vars }}
+      - run: echo "${{ matrix }}"
 
   # generate_matrix:
   #   runs-on: ubuntu-latest
