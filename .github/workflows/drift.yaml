@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
         matrix:
-            manifest: ${{ fromJson(needs.list-manifests.outputs.matrix) }}
+            environments: ${{ fromJson(needs.list-manifests.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v2   
-      - run: echo "${{ matrix.matrix }}"
+      - run: echo "${{ matrix.environments }}"
 
   # generate_matrix:
   #   runs-on: ubuntu-latest
