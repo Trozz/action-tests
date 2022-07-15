@@ -21,7 +21,7 @@ jobs:
 
       - name: Generate matrix
         id: generate_matrix
-        run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | sed -e 's/\.tfvars//g' | jq -R -s -c 'split("\n")[:-1]')"
+        run: echo "::set-output name=matrix::$(ls env_vars/*.tfvars | jq -R -s -c 'split("\n")[:-1]')"
 
   check_drift:
     runs-on: ubuntu-latest
